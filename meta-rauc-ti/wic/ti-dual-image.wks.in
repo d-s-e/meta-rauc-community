@@ -1,0 +1,27 @@
+# short-description: Create SD card image with a boot partition
+# long-description:
+# Create an image that can be written onto a SD card using dd for use
+# with Texas Instruments Jacinto Processor
+#
+# The disk layout used is:
+#  - --------------------------- -------------- ----
+# | |     boot       |    rootfs_A   |  rootfs_B   |
+#  - --------------------------- -------------- ---
+# ^ ^                ^               ^
+# | |<----128MiB---->|               |             |
+# 0 |                |               |             |
+#   1024KiB         4MiB            4MiB
+#
+#
+
+# Bootloader configuration (U-Boot)
+bootloader --ptable gpt --configfile="j721e_evm.cfg"
+
+# /dev/mmcblk1p1 - VFAT
+part --source bootimg-partition --ondisk mmcblk1 --fstype=vfat --label BOOT --active --align 1024 --fixed-size 128 --use-uuid
+
+# /dev/mmcblk1p2- EXT4
+part --source rootfs --ondisk mmcblk1 --fstype=ext4 --label rootfs_A --align 4096 --use-uuid
+
+# /dev/mmcblk1p3- EXT4
+part --source rootfs --ondisk mmcblk1 --fstype=ext4 --label rootfs_B --align 4096 --use-uuid
